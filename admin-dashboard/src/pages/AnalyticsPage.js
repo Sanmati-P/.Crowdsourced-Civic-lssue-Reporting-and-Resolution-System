@@ -1,37 +1,40 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import Card from '../components/ui/Card';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   LineChart, Line, PieChart, Pie, Cell,
 } from 'recharts';
 
-// Dummy data for the charts
-const reportsByCategoryData = [
-  { name: 'Potholes', reports: 45 },
-  { name: 'Streetlights', reports: 30 },
-  { name: 'Sanitation', reports: 25 },
-  { name: 'Roads', reports: 15 },
-  { name: 'Other', reports: 10 },
-];
-
-const reportsOverTimeData = [
-  { name: 'Jan', reports: 20 },
-  { name: 'Feb', reports: 30 },
-  { name: 'Mar', reports: 45 },
-  { name: 'Apr', reports: 40 },
-  { name: 'May', reports: 60 },
-];
-
-const departmentalResponseData = [
-  { name: 'Public Works', value: 75 },
-  { name: 'Sanitation', value: 85 },
-  { name: 'Parks & Rec', value: 60 },
-  { name: 'General Services', value: 50 },
-];
-
 const PIE_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
 const AnalyticsPage = () => {
+  const [analyticsData, setAnalyticsData] = useState({
+    reportsByCategory: [],
+    reportsOverTime: [],
+    departmentalResponse: [],
+  });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Replace this with your actual backend API endpoint for analytics data
+    const API_URL = 'YOUR_BACKEND_API_URL/analytics';
+
+    axios.get(API_URL)
+      .then(response => {
+        setAnalyticsData(response.data);
+        setIsLoading(false);
+      })
+      .catch(error => {
+        console.error("Error fetching analytics data!", error);
+        setIsLoading(false);
+      });
+  }, []);
+
+  if (isLoading) {
+    return <div className="text-center mt-12 text-gray-500">Loading analytics...</div>;
+  }
+
   return (
     <div>
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Analytics and Reporting</h1>
@@ -40,7 +43,7 @@ const AnalyticsPage = () => {
         {/* Reports by Category - Bar Chart */}
         <Card title="Reports by Category">
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={reportsByCategoryData}>
+            <BarChart data={analyticsData.reportsByCategory}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
@@ -54,7 +57,7 @@ const AnalyticsPage = () => {
         {/* Reports Over Time - Line Chart */}
         <Card title="Reports Over Time">
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={reportsOverTimeData}>
+            <LineChart data={analyticsData.reportsOverTime}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
@@ -67,11 +70,11 @@ const AnalyticsPage = () => {
         
         {/* Departmental Response - Pie Chart */}
         <div className="lg:col-span-2">
-          <Card title="Departmental Response (Dummy Data)">
+          <Card title="Departmental Response">
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={departmentalResponseData}
+                  data={analyticsData.departmentalResponse}
                   dataKey="value"
                   nameKey="name"
                   cx="50%"
@@ -79,7 +82,7 @@ const AnalyticsPage = () => {
                   outerRadius={100}
                   label
                 >
-                  {departmentalResponseData.map((entry, index) => (
+                  {analyticsData.departmentalResponse.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                   ))}
                 </Pie>

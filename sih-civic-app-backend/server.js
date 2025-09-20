@@ -52,7 +52,7 @@ app.post('/api/reports', upload.single('photo'), async (req, res) => {
 
         const newReport = new Report({
             description,
-            location: location,
+            location: JSON.parse(location),
             category,
             status,
             photoUrl

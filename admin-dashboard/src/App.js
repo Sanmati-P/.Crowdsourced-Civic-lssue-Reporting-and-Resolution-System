@@ -1,26 +1,26 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css'; // or your main CSS file path
-import './index.css'; // Make sure this is linked
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Layout from './components/layout/Layout';
+import DashboardPage from './pages/DashboardPage';
+import IssuesPage from './pages/IssuesPage';
+import AnalyticsPage from './pages/AnalyticsPage';
+import NotFoundPage from './pages/NotFoundPage';
+import './index.css'; // Your Tailwind CSS file
 
 function App() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
-      <header className="flex flex-col items-center justify-center text-xl">
-        <img src={logo} className="h-48 animate-spin-slow" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="text-blue-400 mt-4"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<DashboardPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/issues" element={<IssuesPage />} />
+          <Route path="/analytics" element={<AnalyticsPage />} />
+          {/* A catch-all route for 404 pages */}
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </Layout>
+    </Router>
   );
 }
 

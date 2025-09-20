@@ -1,29 +1,51 @@
-// src/pages/IssuesPage.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import IssueTable from '../components/issues/IssueTable';
 import IssueDetail from '../components/issues/IssueDetail';
 
-const dummyIssues = [
-  // ... your dummy data, updated with assignedTo property
-  { id: 'RPT-001', title: 'Large Pothole on Main St', location: '123 Main St', status: 'In Progress', date: '2025-09-18', description: '...', assignedTo: 'Public Works' },
-  { id: 'RPT-002', title: 'Streetlight is Out', location: '456 Oak Ave', status: 'New', date: '2025-09-19', description: '...', assignedTo: 'Unassigned' },
-  { id: 'RPT-003', title: 'Trash Cans Overflowing', location: '789 Pine Ln', status: 'Resolved', date: '2025-09-17', description: '...', assignedTo: 'Sanitation' },
-];
-
 const IssuesPage = () => {
-  const [issues, setIssues] = useState(dummyIssues);
+  // We will now use an empty array as the initial state for issues
+  const [issues, setIssues] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedIssue, setSelectedIssue] = useState(null);
   const [sortKey, setSortKey] = useState('date');
   const [sortDirection, setSortDirection] = useState('desc');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Function to handle issue updates from the modal
+  // This hook fetches data from the backend when the component first mounts
+  useEffect(() => {
+    // Replace with your actual backend API endpoint for all issues
+    const API_URL = 'YOUR_BACKEND_API_URL/issues'; 
+
+    axios.get(API_URL)
+      .then(response => {
+        setIssues(response.data);
+        setIsLoading(false);
+      })
+      .catch(error => {
+        console.error("Error fetching issues:", error);
+        setIsLoading(false);
+      });
+  }, []); // The empty array [] ensures this runs only once
+
+  // This function updates the issue both in the backend and in our local state
   const handleUpdateIssue = (updatedIssue) => {
-    setIssues(prevIssues => 
-      prevIssues.map(issue => 
-        issue.id === updatedIssue.id ? updatedIssue : issue
-      )
-    );
+    // Replace with your actual backend API endpoint for updating issues
+    const API_URL = `YOUR_BACKEND_API_URL/issues/${updatedIssue.id}`;
+
+    axios.put(API_URL, updatedIssue)
+      .then(response => {
+        setIssues(prevIssues => 
+          prevIssues.map(issue => 
+            issue.id === updatedIssue.id ? updatedIssue : issue
+          )
+        );
+        // Optional: Close the modal after a successful update
+        setSelectedIssue(null);
+      })
+      .catch(error => {
+        console.error("Error updating issue:", error);
+      });
   };
 
   const handleViewDetails = (issue) => {
@@ -47,6 +69,7 @@ const IssuesPage = () => {
     setSearchQuery(event.target.value);
   };
 
+  // Filter and sort logic remains the same, but now it operates on the fetched 'issues' state
   const filteredIssues = issues.filter(issue =>
     issue.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     issue.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -55,10 +78,20 @@ const IssuesPage = () => {
   );
 
   const sortedIssues = [...filteredIssues].sort((a, b) => {
+    const priorityOrder = { 'High': 3, 'Medium': 2, 'Low': 1 };
+    if (sortKey === 'priority') {
+      const aVal = priorityOrder[a.priority] || 0;
+      const bVal = priorityOrder[b.priority] || 0;
+      return sortDirection === 'asc' ? aVal - bVal : bVal - aVal;
+    }
     if (a[sortKey] < b[sortKey]) return sortDirection === 'asc' ? -1 : 1;
     if (a[sortKey] > b[sortKey]) return sortDirection === 'asc' ? 1 : -1;
     return 0;
   });
+
+  if (isLoading) {
+    return <div className="text-center mt-12 text-gray-500">Loading issues...</div>;
+  }
 
   return (
     <div>
@@ -82,7 +115,6 @@ const IssuesPage = () => {
         sortDirection={sortDirection}
       />
       
-      {/* Pass the handleUpdateIssue function to the modal */}
       {selectedIssue && (
         <IssueDetail 
           issue={selectedIssue} 
